@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ülke Mesafesi Tahmin Oyunu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9e9e9;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ülke Tahmin Oyunu</h1>
+        <p>Bir ülke tahmin edin!</p>
+        <input type="text" id="guess" placeholder="Tahmininizi girin...">
+        <button onclick="submitGuess()">Tahmin Et</button>
+        <button onclick="resetGame()">Yenile</button>
+        <button onclick="revealCountry()">Reveal</button> <!-- Reveal butonu eklendi -->
+
+        <div id="result" class="result" style="display: none;">
+            <p><strong>En İyi Eşleşme:</strong> <span id="best_match"></span></p>
+            <p><strong>Mesafe:</strong> <span id="distance"></span> km</p>
+            <p><strong>Yön:</strong> <span id="direction"></span></p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+
+    <script>
+        let targetCountry = "";
+
+        // Backend ile iletişim için async fonksiyon
+        async function submitGuess() {
+            const guess = document.getElementById('guess').value.trim();
+            const errorElement = document.getElementById('error');
+            const resultElement = document.getElementById('result');
+            
+            // Hata mesajlarını sıfırlama
+            errorElement.style.display = 'none';
+            resultElement.style.display = 'none';
+
+            if (!guess) {
+                errorElement.innerHTML = 'Lütfen bir ülke adı girin.';
+                errorElement.style.display = 'block';
+                return;
+            }
+
+            try {
+                // Backend'e istek gönder
+                const response = await fetch('http://127.0.0.1:5001/calculate_distance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ guess: guess })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Sonuçları güncelle
+                    document.getElementById('best_match').innerText = data.best_match;
+                    document.getElementById('distance').innerText = data.distance.toFixed(2);
+                    document.getElementById('direction').innerText = data.lat_direction + ', ' + data.lon_direction;
+                    resultElement.style.display = 'block';
+                } else {
+                    // Hata mesajı
+                    errorElement.innerHTML = data.error || 'Bir hata oluştu, tekrar deneyin.';
+                    errorElement.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorElement.innerHTML = 'Bir şeyler yanlış gitti, lütfen tekrar deneyin.';
+                errorElement.style.display = 'block';
+            }
+        }
+
+        // Yenile butonunun işlevi
+        async function resetGame() {
+            const response = await fetch('http://127.0.0.1:5001/reset_game');
+            const data = await response.json();
+
+            targetCountry = data.country; // Yeniden rastgele seçilen ülke
+            alert('Yeni oyun başladı! Şimdi ' + targetCountry + ' ülkesini tahmin etmelisiniz.');
+        }
+
+        // Reveal butonunun işlevi
+        function revealCountry() {
+            if (targetCountry) {
+                alert("Hedef Ülke: " + targetCountry); // Hedef ülkeyi göster
+            } else {
+                alert("Hedef ülke henüz seçilmedi.");
+            }
+        }
+    </script>
+</body>
+</html>
