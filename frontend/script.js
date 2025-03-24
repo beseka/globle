@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const feedback = document.getElementById("feedback");
     const feedback2 = document.getElementById("feedback2");
     const hint = document.getElementById("hint");
+    const st = document.getElementById("start");
 
     let targetCountry = "";
 
@@ -19,25 +20,34 @@ document.addEventListener("DOMContentLoaded", () => {
         feedback.innerHTML = "";
         hint.innerHTML = "";
         console.log(targetCountry);
+        st.innerHTML = "";
     });
 
     submitGuessBtn.addEventListener("click", async () => {
+        
         const userGuess = guessInput.value.trim();
         if (!userGuess) return;
+        if(targetCountry == ""){
+            feedback2.innerHTML = "Oyun başlamadı! Başlamak için 'Başla' butonuna tıklayın.";
+            return;
+        }
 
         const matchResponse = await fetch("http://localhost:5001/best-match", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ country: userGuess })
         });
+
         const matchData = await matchResponse.json();
         const bestMatch = matchData.best_match;
         feedback2.innerHTML = `Tahmin edilen ülke: ${bestMatch}`;
+        guessInput.value = "";
         const distanceResponse = await fetch("http://localhost:5001/distance", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ country1: bestMatch, country2: targetCountry })
         });
+
         const distanceData = await distanceResponse.json();
 
         const neighborsResponse = await fetch(`http://localhost:5001/neighbors/${bestMatch}`);
@@ -48,13 +58,13 @@ document.addEventListener("DOMContentLoaded", () => {
         } else  {
             if(distanceData.distance_km == 0){
                 feedback.innerHTML = "Tebrikler! Doğru tahmin!";
+                hint.innerHTML = "";
+                targetCountry = "";
             }else{
                 feedback.innerHTML = `${bestMatch} hedef ülkeye ${distanceData.distance_km} km uzaklıkta.`;
             }
             
         }
-
-        
     });
 
     hintBtn.addEventListener("click", async () => {
@@ -73,5 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     revealBtn.addEventListener("click", () => {
         hint.innerHTML = `Doğru cevap: ${targetCountry}`;
+        feedback.innerHTML = "";
+        feedback2.innerHTML = "";
+        targetCountry = "";
     });
 });

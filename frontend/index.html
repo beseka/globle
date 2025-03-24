@@ -9,25 +9,28 @@
 <body>
     <div class="game-container">
         <h1>Ülke Tahmin Oyunu</h1>
-        <p>Ülke tahmin oyunu oynamak için aşağıdaki butona tıklayın.</p>
+        <p id ="start">Ülke tahmin oyunu oynamak için aşağıdaki butona tıklayın.</p>
 
         <button id="start-btn">Oyna</button>
         <p id="feedback2"></p>
         <br>
         <br>
         <br>
+    </div>
+    <div class="game-container" id="game-container">
         <div id="game-area">
             <input type="text" id="guess-input" placeholder="Bir ülke adı girin">
             <button id="submit-guess">Tahmin Et</button>
             <p id="feedback"></p>
         </div>
-    </div>
-    <div class="hint-container">
+        <br>
+        <br>
+        <br>
         <div id="hint-area">
             <button id="hint-btn">İpucu</button>
             <button id="reveal-btn">Cevabı Göster</button>
             <p id="hint"></p>
-        </div>
+        </div> 
     </div>
     <script src="script.js"></script>
 </body>
